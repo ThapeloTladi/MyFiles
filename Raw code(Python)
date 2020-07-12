@@ -1,0 +1,89 @@
+My Code
+#Importing 
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+#Loading the dataset
+df = pd.read_csv("C:\\Users\\Queenton\\Desktop\\Data Science using Python\\Comcast_telecom_complaints_data.csv")
+
+#View first 5
+df.head()
+
+#Adding a new row & column
+df["date_row"] = df["Date_month_year"] + " " + df["Time"]
+df["date_row"] = pd.to_datetime(df["date_row"])
+df["Date_month_year"] = pd.to_datetime(df["date_row"])
+#View the types
+df.dtypes
+
+df = df.set_index(df["date_row"])
+#View 5 observations
+df.head()
+
+#Count
+df["Date_month_year"].value_counts()[:3]
+
+#Plot
+df["Date_month_year"].value_counts().plot();
+df.groupby(pd.Grouper(freq = "M")).size().plot()
+
+df.Status.unique()
+
+#Validation for status
+df["Status_New"] = ["Open" if Status == "Open" or Status == "Pending" else "Closed" for Status in df["Status"]]
+
+#View 
+df.head()
+
+#Show states with number of complaints
+df.groupby(["State"]).size().sort_values(ascending = False).to_frame().reset_index().rename({0:"Count"},
+
+#Status table
+Complaints_Status = df.groupby(["State","Status_New"]).size().unstack().fillna(0)
+Complaints_Status
+
+#Plotting status
+Complaints_Status.plot(kind="barh",figsize = (30,50), stacked= True)
+
+#Complaint types
+df_type = df["Customer Complaint"].value_counts()
+#View
+df_type.head(20)
+# Unresolved complaints across State
+df_unresolved = df[df['Status_New']=='Open']
+colors = ['#639ace','#ca6b39','#7f67ca','#5ba85f','#c360aa','#a7993f','#cc566a']
+df_unresolved = df_unresolved['State'].value_counts()
+df_unresolved.head(20)
+
+#Plotting unresolved
+df_unresolved.head().plot(kind='pie',autopct='%1.1f%%',
+                        #explode = (0.15, 0, 0, 0, 0), startangle=45, shadow=False, colors = colors,
+                        figsize = (4,3))
+plt.axis('equal')
+plt.title('Unresolved complaints distribution\n')
+plt.tight_layout()
+plt.show()
+
+#Providing percentage of complaints received by Internet and calls
+df_received = df[df['Received Via'].isin(['Internet','Customer Care Call'])]
+
+#View
+df_received.head()
+
+#count Open and closed by Internet & Call
+df_received.Status_New.value_counts()
+
+#Show Percentage of open and closed
+df_received.Status_New.value_counts().plot(kind='pie',autopct='%1.1f%%',
+                        #explode = (0.15, 0, 0, 0, 0), startangle=45, shadow=False, colors = colors,
+                        figsize = (4,3))
+plt.axis('equal')
+plt.title('Complaints status through Internet & Customer Care\n')
+plt.tight_layout()
+plt.show()
+
+#Number of observations in Closed
+df_closed = df_received[df_received["Status_New"]== 'Closed']
+#View
+df_closed.Status_New.value_counts()
